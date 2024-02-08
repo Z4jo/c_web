@@ -7,6 +7,7 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include "parser.h"
+#include "response_generator.h"
 #include <poll.h>
 
 #define handleErr(msg)\
@@ -50,16 +51,25 @@ int main(){
 				if(recieve==-1){
 					handleErr("its fucked");
 				}
-				struct ArraySize lined_request;
+				struct ArraySize lined_request;  
 				lined_request = read_lines(buffer);	
+				struct Req *rq = malloc(sizeof(struct Req));
+				struct Resp *rp = malloc(sizeof(struct Resp));
+				if (rq == NULL || rp == NULL){
+					handleErr("memory not allocated");		
+				}
 				printf("%s\n","we are back in this bitch");
+				extract(lined_request,rq);
+				build_response(rq,rp);	
+				char* rp_string = generate_resp_string(rp);
 				for(int i = 0; i< lined_request.size_in_lines; i++){
 					printf("%s\n",lined_request.array[i]);
 					free(lined_request.array[i]);
 				}
 				free(lined_request.array);
 				memset(buffer, 0, 8192);
-
+				printf("the string:%s\n",rp_string);
+				send(client_sock, rp_string,strlen(rp_string),0);
 				close(client_sock); 
 				strcpy(buffer, "");
 			}else{

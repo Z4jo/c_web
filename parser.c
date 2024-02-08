@@ -26,3 +26,29 @@ struct ArraySize read_lines(char *buffer){
 	ret.size_in_lines=number_of_lines;
 	return ret;
 }	
+
+void extract(struct ArraySize arr, struct Req *ret){
+	for(int i = 0; i<arr.size_in_lines; ++i){
+		if(i == 0){
+			char *saveptr, *word;
+			word = strtok_r(arr.array[i]," ",&saveptr);   
+			for(int j = 0; word != NULL; ++j){
+				if(j == 0 ){
+					if(strcmp(word,"GET")){
+						ret->req = GET;			
+					} else if (strcmp(word,"POST")){
+						ret->req = POST;
+					}else{
+						ret->req = ERR;
+					}
+
+				}else if(j == 1){
+					ret->src_name = word;	
+				}
+				word = strtok_r(NULL," ",&saveptr);
+			}
+		}
+	}
+
+	printf("we are done extracting\n");
+}
