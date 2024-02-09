@@ -6,7 +6,6 @@
 #include <unistd.h>
 #include <time.h>
 void build_response(struct Req *rq, struct Resp *ret){
-	printf("we are building response\n");
 	char *saveptr;
 	char *path = rq->src_name;	
 	char *parameter = strchr(path,'?');
@@ -30,14 +29,11 @@ void build_response(struct Req *rq, struct Resp *ret){
 	strcat(file_path,base_path);
 	strcat(file_path,path);
 	
-	printf("file_path: %s\n",file_path);
 
 	if(access(file_path,F_OK)==-1){
 		//TODO:file does not exists status code change	
-		printf("file has not been found = %d\n",access(file_path,F_OK));
 		ret->code = Not_Found;
 	}else{
-		printf("file has been found = %d\n",access(file_path,F_OK));
 		FILE *f_resp = fopen(file_path,"rb");	
 		ret->file_path = file_path;
 		ret->file = f_resp;
@@ -45,12 +41,11 @@ void build_response(struct Req *rq, struct Resp *ret){
 		ret->code = OK;
 		ret->size_in_bytes = get_size_of_file(f_resp);
 	}
-	printf("we are done building resp\n");	
+	printf("response has been build\n");	
 }
 
 char* generate_resp_string(struct Resp *rp){
 	//TODO: if else code status
-	printf("we are building string\n");
 	char* ret;
 	size_t file_size = strtoul(rp->size_in_bytes,NULL,10);
 	char* file_buffer=malloc(file_size);
@@ -61,23 +56,30 @@ char* generate_resp_string(struct Resp *rp){
 	char *header_content_lenght; 
 	//TODO: implement
 	char *header_content_encoding = "Content-Encoding: ";
-	if(rp->file == NULL){
-		perror("file pointer je null");
-	}
-	fseek(rp->file, 0, SEEK_SET);
-	fread(file_buffer,1 , file_size, rp->file);	
-	printf("file:%s\n",file_buffer);
-	printf("media:%d\n",rp->media);
-	header_content_type = malloc(strlen("Content-Type: ")+strlen(content_type_values[rp->media])+strlen(crlf)); header_content_lenght =  malloc(strlen("Content-Length: ")+strlen(rp->size_in_bytes)+strlen(crlf));
 	if (rp->code == OK){
+		if(rp->file == NULL){
+			perror("file pointer je null");
+			exit(EXIT_SUCCESS);
+		}
+		fseek(rp->file, 0, SEEK_SET);
+		fread(file_buffer,1 , file_size, rp->file);	
+		header_content_type = malloc(strlen("Content-Type: ")+strlen(content_type_values[rp->media])+strlen(crlf)); 
+		header_content_lenght =  malloc(strlen("Content-Length: ")+strlen(rp->size_in_bytes)+strlen(crlf));
+		if(header_content_lenght == NULL || header_content_type == NULL){
+			perror("file pointer je null");
+			exit(EXIT_SUCCESS);
+		}
 		strcat(header_content_type,"Content-Type: ");
 		strcat(header_content_type,content_type_values[rp->media]);
 		strcat(header_content_type,crlf);
 		strcat(header_content_lenght,"Content-Length: ");
-		printf("bytes:%s\n",rp->size_in_bytes);
 		strcat(header_content_lenght,rp->size_in_bytes);
 		strcat(header_content_lenght, crlf);
 		ret = malloc(strlen(response)+strlen(header_content_type)+strlen(crlf)+strlen(header_content_lenght)+file_size+1);
+		if(ret==NULL){
+			perror("memory was not allocated");
+			exit(EXIT_FAILURE);
+		}
 		strcat(ret,response); 
 		strcat(ret,header_content_type); 
 		strcat(ret,header_content_lenght); 
@@ -89,7 +91,7 @@ char* generate_resp_string(struct Resp *rp){
 	free(file_buffer);
 	free(header_content_lenght);
 	free(header_content_type);
-	printf("we are done generating string");	
+	printf("string has been generated\n");	
 	return ret;
 }
 
@@ -131,7 +133,6 @@ char* get_size_of_file(FILE *file){
 	char buffer[max_size+1];
 	snprintf( buffer,sizeof(buffer), "%zu",size); 
 	char *ret = buffer;
-	printf("file_bytes:%s\n",ret);
 	return ret;
 }
 

@@ -25,11 +25,11 @@ int main(){
 
 
 	if(bind(sock,(struct sockaddr *) &my_addr,sizeof(my_addr)) == -1){
-		handleErr("build fucked up"); 
+		handleErr("build not working "); 
 	}
 
 	if(listen(sock,10)<0){
-		handleErr("listen fucked up");
+		handleErr("listen not working");
 	}
 
 		
@@ -44,12 +44,12 @@ int main(){
 				
 				int client_sock = accept4(sock,(struct sockaddr*)&peer_addr,&peer_addr_len,0);
 					if(client_sock == -1){
-						handleErr("accept fucked up");
+						handleErr("accept not working");
 					}
 
 				int recieve = recv(client_sock,buffer,8192,0);
 				if(recieve==-1){
-					handleErr("its fucked");
+					handleErr("recv not working");
 				}
 				struct ArraySize lined_request;  
 				lined_request = read_lines(buffer);	
@@ -58,25 +58,27 @@ int main(){
 				if (rq == NULL || rp == NULL){
 					handleErr("memory not allocated");		
 				}
-				printf("%s\n","we are back in this bitch");
 				extract(lined_request,rq);
 				build_response(rq,rp);	
 				char* rp_string = generate_resp_string(rp);
+				free(rq);
+				free(rp);
 				for(int i = 0; i< lined_request.size_in_lines; i++){
 					printf("%s\n",lined_request.array[i]);
 					free(lined_request.array[i]);
 				}
 				free(lined_request.array);
 				memset(buffer, 0, 8192);
-				printf("the string:%s\n",rp_string);
+				printf("response string:%s\n",rp_string);
 				send(client_sock, rp_string,strlen(rp_string),0);
+				free(rp_string);
 				close(client_sock); 
 				strcpy(buffer, "");
 			}else{
 			continue;
 			}
 		}else{
-			handleErr("poll fucked up");
+			handleErr("poll not working");
 		}
 
 		}
